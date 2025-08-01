@@ -4,10 +4,10 @@ The purpose of this directory is to highlight some advanced sql techniques used 
 
 #### Actors and Films Database:
 Project includes:
-- [Postgres-movie-db](./postgres-movie-db.ipynb): Main notebook using sqlalchemy to run sql scripts
-- [db.sql](./db.sql): SQL scripts
-- [Magic_sql](./magic_sql.ipynb): Secondary Notebook for ad-hoc analysis
-- [How to Use Guide](./how-to-guide.md): Documentation on how to use the data.
+- [Postgres-movie-db](movies/postgres-movie-db.ipynb): Main notebook using sqlalchemy to run sql scripts
+- [db.sql](movies/db.sql): SQL scripts
+- [Magic_sql](movies/magic_sql.ipynb): Secondary Notebook for ad-hoc analysis
+- [How to Use Guide](movies/README.md): Documentation on how to use the data.
 
 This demonstration showcases the use of PostgreSQL, Python, and Docker to build an actor_films database, featuring a Slowly Changing Dimension (SCD) table derived from a larger dataset on actors and films.
 
