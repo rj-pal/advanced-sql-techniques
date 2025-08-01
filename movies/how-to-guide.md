@@ -41,11 +41,118 @@ To retrieve the status of an actor at a specific point in time, use the `start_d
 
     SELECT * 
     FROM actors_scd 
-    WHERE actorid = 123 
+    WHERE actorid = 'nm0000191'
     AND 2020 BETWEEN start_date AND end_date;
 
-This query will return the actor's status in 2020, including the `quality_class`, `is_active`, and the corresponding time period.
+This query will return the actor's status in 2020, including the `quality_class`, `is_active`, and the corresponding time period. In this case, the actor was Ewan McGregor during the most recent year of the data.
 
+Since `actorid` is in inaccessible format, it is recommended to search by an actor or actrices name, or `actor` field.
+
+    SELECT * 
+    FROM actors_scd 
+    WHERE actor = 'Ewan McGregor'
+    AND 1996 BETWEEN start_date AND end_date;
+
+This will return McGregor's status in 1996, the year of his breakthrough hit 'Trainspotting'.
+
+#### Querying for Complex Analysis
+
+For more in-depth analysis, you can join the `actors_scd table` with the `actors table` and explore an actor's filmography during specific periods of their career. To retrieve an actor's status for a given year, alongside the films they released in that year, you can join the tables and use a LEFT JOIN LATERAL with UNNEST(films-type) to extract the film details.  
+
+    SELECT 
+        a.actor, 
+        a.quality_class, 
+        a.is_active, 
+        ascd.start_date, 
+        ascd.end_date, 
+        a.current_year, 
+        film_details.film,
+        film_details.rating,
+        film_details.year
+    FROM 
+        actors AS a
+    JOIN 
+        actors_scd AS ascd
+    ON 
+        a.actorid = ascd.actorid
+    LEFT JOIN LATERAL (
+        SELECT 
+            film_details.film,
+            film_details.rating,
+            film_details.year
+        FROM 
+            UNNEST(a.films) AS film_details 
+            film_details.year >= ascd.start_date
+    ) film_details ON TRUE 
+    WHERE 
+        a.actor = 'Hugh Jackman' AND
+        a.current_year = 2017 AND
+        2017 BETWEEN ascd.start_date AND ascd.end_date;
+        
+This provided complex query will show Hugh Jackman's status in 2017 and a list films he released from the beginning of that status period, thus enabling you to understand his work during specific phases of his career (in this case, the year he appeared in 'The Greateset Showman').
+
+You could tweak the filters for different information. For example, we can modify the above query to get the films only from a particular year (in this case 2017, the year from the search):
+    
+    FROM 
+    UNNEST(a.films) AS film_details 
+    film_details.year >= a. current
+
+You could take the analysis one step further using CTE's to get descriptive statistics the year in the actor's career.
+    
+    WITH ActorFilmsByStatus AS (
+        SELECT
+            a.actor,
+            ascd.quality_class,
+            ascd.is_active,
+            ascd.start_date,
+            ascd.end_date,
+            film_details.film,
+            film_details.rating,
+            film_details.year AS film_year
+        FROM
+            actors AS a
+        JOIN
+            actors_scd AS ascd
+        ON
+            a.actorid = ascd.actorid
+        LEFT JOIN LATERAL (
+            SELECT
+                film_details.film,
+                film_details.rating,
+                film_details.year
+            FROM
+                UNNEST(a.films) AS film_details
+            WHERE
+                film_details.year = a.current_year
+                
+        ) film_details ON TRUE
+        WHERE
+            a.actor = 'Ewan McGregor'
+            AND a.current_year = 2005 -- Select the relevant year for analysis
+            AND 2005 BETWEEN ascd.start_date AND ascd.end_date
+    )
+    SELECT
+        actor,
+        quality_class,
+        is_active,
+        start_date,
+        end_date,
+        COUNT(film) AS number_of_films_in_period,
+        AVG(rating) AS average_rating_in_period
+    FROM
+        ActorFilmsByStatus
+    GROUP BY
+        actor,
+        quality_class,
+        is_active,
+        start_date,
+        end_date;
+
+This complex query will return Ewan McGregor's actor staus in 2005, the year of 'Revenge of the Sith', the number of movies appeared in in that particular year, and the average rating. 
+
+For the record, he was busy with 5 movies released and an average rating of 6.58 for all the movies in 2005. According to the data, he remained average from 2005 to 2020.
+
+        
 #### Handling Updates:
 When new data is inserted into the actors table, it may result in changes to an actor’s quality_class or is_active status. In such cases, a new record will be created in actors_scd to represent the updated status, with an updated start_date and end_date values.
 

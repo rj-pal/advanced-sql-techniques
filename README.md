@@ -19,14 +19,21 @@ The setup pulls and modifies the official Postgres Docker image to create a cust
 
 The main table, `actor_films`, is imported from a CSV file and includes the following fields: `actor`, `actorid`, `film`, `year`, `votes`, `rating`, `filmid`.
 
+The `actors` table includes the following fields: `actor`, `actorid`, `quality_class`, `is_active`, `current_year`, and `films`.
+
+The `quality_class` type includes the following values: `'star'`, `'good'`, `'average'`, and `'bad'`.
+
+The `films` type includes the following fields: `film`, `votes`, `rating`, `year`, and `filmid`.
+
+
+The `actors_scd` table includes the following fields: `actor`, `actorid`, `quality_class`, `is_active`, `start_date`, `end_date`, and `current_year`.
+
 ----
 ##### Summary of SQL Script Process
 
-The first script leverages a PostgreSQL anonymous code block and a FOR loop to iteratively populate the actors table with cumulative yearly filmography data. The loop starts from 1969—one year before the earliest data year (1970)—and proceeds through 2021. For each year, it aggregates films into arrays of composite film types representing an actor’s portfolio, and merges these with the previous year’s cumulative data. This ensures continuity by carrying forward film data for inactive years. The script also computes an average rating from all accumulated films, classifying actors into enumerated quality tiers (‘star’, ‘good’, ‘average’, or ‘bad’). This approach constructs a comprehensive longitudinal dataset capturing actor activity and performance over time. 
+The first script leverages a PostgreSQL anonymous code block and a FOR loop to iteratively populate the actors table with cumulative yearly filmography data. The loop starts from 1969, which is one year before the earliest data year on record (1970), and proceeds through to 2020. For each year, it aggregates films into arrays of composite film types representing an actor’s oeuvre, and merges these with the previous year’s cumulative data. This ensures continuity by carrying forward film data for inactive years. The script also computes an average rating from all accumulated films, classifying actors into enumerated quality tiers (‘star’, ‘good’, ‘average’, or ‘bad’). This approach constructs a comprehensive longitudinal dataset capturing actor activity and performance over time. 
 
 The second script constructs a Slowly Changing Dimension (SCD) table, actors_scd, which identifies and records intervals of change in actors’ quality classifications and active status. Utilizing window functions (LAG and cumulative SUM), it detects year-over-year changes and groups contiguous years of consistent status into intervals defined by start and end years. This facilitates efficient historical tracking by representing stable periods as single records, optimizing temporal analysis and reporting.
-
---
 
 
 
